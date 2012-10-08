@@ -1,25 +1,30 @@
 package org.vaadin.thomas.timefield;
 
 import java.text.DateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
-
-import org.vaadin.addon.customfield.CustomField;
+import java.util.Set;
 
 import com.vaadin.data.Property;
-import com.vaadin.terminal.gwt.server.WebApplicationContext;
+import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.shared.ui.datefield.Resolution;
+import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeSelect;
 
 /**
  * A field for selecting time values.
  * <p>
- * Uses {@link Date} as internal data type. 
+ * Uses {@link Date} as internal data type.
  * 
  * @author Thomas Mattsson / Vaadin OY
  */
-public class TimeField extends CustomField {
+public class TimeField extends CustomComponent implements Field<Date> {
 
 	private static final long serialVersionUID = -676425827861766118L;
 
@@ -34,20 +39,32 @@ public class TimeField extends CustomField {
 	private final NativeSelect secondSelect;
 	private final NativeSelect ampmSelect;
 
-	private int resolution = DateField.RESOLUTION_MIN;
+	private Resolution resolution = Resolution.MINUTE;
 
 	private boolean maskInternalValueChange = false;
 
 	private HorizontalLayout root;
+
+	/* FIELD features */
+	private final Set<ValueChangeListener> valueChangeListeners = new HashSet<Property.ValueChangeListener>();
+	private Date value;
+	private Property<Date> property;
 
 	public TimeField(String caption) {
 		this();
 		setCaption(caption);
 	}
 
+	@Override
+	public void focus() {
+		super.focus();
+	}
+
 	public TimeField() {
 
 		root = new HorizontalLayout();
+		root.setHeight(null);
+		root.setWidth(null);
 		setCompositionRoot(root);
 
 		hourSelect = getSelect();
@@ -103,26 +120,27 @@ public class TimeField extends CustomField {
 	 */
 	@SuppressWarnings("deprecation")
 	public int getHours() {
-		Date d = (Date) getValue();
+		Date d = getValue();
 		return d.getHours();
 	}
-	
+
 	/**
 	 * Set hour in 24-hour format (0-23)
+	 * 
 	 * @param hours
 	 */
-	public void setHours(int hours){
-		
-		if(!use24HourClock){
-			
-			if(hours > 12){
+	public void setHours(int hours) {
+
+		if (!use24HourClock) {
+
+			if (hours > 12) {
 				ampmSelect.select(VALUE_PM);
 				hours %= 12;
 			} else {
 				ampmSelect.select(VALUE_AM);
 			}
-			
-			if(hours == 0) {
+
+			if (hours == 0) {
 				hours = 12;
 			}
 		}
@@ -131,21 +149,21 @@ public class TimeField extends CustomField {
 
 	@SuppressWarnings("deprecation")
 	public int getMinutes() {
-		Date d = (Date) getValue();
+		Date d = getValue();
 		return d.getMinutes();
 	}
-	
-	public void setMinutes(int minutes){
+
+	public void setMinutes(int minutes) {
 		minuteSelect.setValue(minutes);
 	}
 
 	@SuppressWarnings("deprecation")
 	public int getSeconds() {
-		Date d = (Date) getValue();
+		Date d = getValue();
 		return d.getSeconds();
 	}
-	
-	public void setSeconds(int seconds){
+
+	public void setSeconds(int seconds) {
 		secondSelect.setValue(seconds);
 	}
 
@@ -183,7 +201,7 @@ public class TimeField extends CustomField {
 		};
 		select.setImmediate(true);
 		select.setNullSelectionAllowed(false);
-		select.addListener(new Property.ValueChangeListener() {
+		select.addValueChangeListener(new Property.ValueChangeListener() {
 
 			private static final long serialVersionUID = 3383351188340627219L;
 
@@ -194,12 +212,27 @@ public class TimeField extends CustomField {
 				}
 				maskInternalValueChange = true;
 				updateValue();
-				TimeField.this.fireValueChange(true);
+				TimeField.this.fireValueChange();
 				maskInternalValueChange = false;
 
 			}
 		});
 		return select;
+	}
+
+	protected void fireValueChange() {
+		for (ValueChangeListener l : valueChangeListeners) {
+			l.valueChange(new ValueChangeEvent(this) {
+
+				private static final long serialVersionUID = -4921170300352047053L;
+
+				@Override
+				public Property<Date> getProperty() {
+					return TimeField.this;
+				}
+			});
+		}
+
 	}
 
 	@SuppressWarnings("deprecation")
@@ -211,7 +244,7 @@ public class TimeField extends CustomField {
 		newDate.setHours(0);
 
 		int val;
-		if (resolution <= DateField.RESOLUTION_HOUR) {
+		if (resolution.ordinal() <= Resolution.HOUR.ordinal()) {
 			val = (Integer) hourSelect.getValue();
 
 			if (use24HourClock) {
@@ -226,11 +259,11 @@ public class TimeField extends CustomField {
 				newDate.setHours(val);
 			}
 		}
-		if (resolution < DateField.RESOLUTION_HOUR) {
+		if (resolution.ordinal() < Resolution.HOUR.ordinal()) {
 			val = (Integer) minuteSelect.getValue();
 			newDate.setMinutes(val);
 		}
-		if (resolution < DateField.RESOLUTION_MIN) {
+		if (resolution.ordinal() < Resolution.MINUTE.ordinal()) {
 			val = (Integer) secondSelect.getValue();
 			newDate.setSeconds(val);
 		}
@@ -241,7 +274,7 @@ public class TimeField extends CustomField {
 	@SuppressWarnings("deprecation")
 	private void updateFields() {
 
-		Date val = (Date) getValue();
+		Date val = getValue();
 		if (val == null) {
 			hourSelect.setValue(null);
 			minuteSelect.setValue(null);
@@ -262,10 +295,12 @@ public class TimeField extends CustomField {
 			hourSelect.setValue(h);
 		}
 
-		minuteSelect.setVisible(resolution < DateField.RESOLUTION_HOUR);
+		minuteSelect.setVisible(resolution.ordinal() < Resolution.HOUR
+				.ordinal());
 		minuteSelect.setValue(val.getMinutes());
 
-		secondSelect.setVisible(resolution < DateField.RESOLUTION_MIN);
+		secondSelect.setVisible(resolution.ordinal() < Resolution.MINUTE
+				.ordinal());
 		secondSelect.setValue(val.getSeconds());
 
 		ampmSelect.setVisible(!use24HourClock);
@@ -311,13 +346,13 @@ public class TimeField extends CustomField {
 	 * @see DateField#setResolution(int)
 	 * @param resolution
 	 */
-	public void setResolution(int resolution) {
-		
-		if(this.resolution < resolution){
-			if(resolution>DateField.RESOLUTION_SEC){
+	public void setResolution(Resolution resolution) {
+
+		if (this.resolution.ordinal() < resolution.ordinal()) {
+			if (resolution.ordinal() > Resolution.SECOND.ordinal()) {
 				secondSelect.setValue(0);
 			}
-			if(resolution>DateField.RESOLUTION_MIN){
+			if (resolution.ordinal() > Resolution.MINUTE.ordinal()) {
 				minuteSelect.setValue(0);
 			}
 		}
@@ -328,7 +363,7 @@ public class TimeField extends CustomField {
 	 * @see DateField#getResolution()
 	 * @return
 	 */
-	public int getResolution() {
+	public Resolution getResolution() {
 		return resolution;
 	}
 
@@ -340,9 +375,9 @@ public class TimeField extends CustomField {
 		// browser
 		if (givenLocale == null) {
 			// we have access to application after attachment
-			Locale locale = ((WebApplicationContext) getApplication()
-					.getContext()).getBrowser().getLocale();
-			setLocale(locale);
+			@SuppressWarnings("deprecation")
+			Locale locale = getUI().getSession().getBrowser().getLocale();
+			givenLocale = locale;
 		}
 	}
 
@@ -357,9 +392,165 @@ public class TimeField extends CustomField {
 		return use24HourClock;
 	}
 
-	@Override
-	public Class<?> getType() {
-		return Date.class;
+	public void setBuffered(boolean buffered) {
+
 	}
 
+	public boolean isBuffered() {
+		return false;
+	}
+
+	public void removeAllValidators() {
+		Collection<Validator> validators = getValidators();
+		for (Validator v : validators) {
+			removeValidator(v);
+		}
+
+	}
+
+	public void addValueChangeListener(ValueChangeListener listener) {
+		// TODO Auto-generated method stub
+	}
+
+	public void removeValueChangeListener(ValueChangeListener listener) {
+		// TODO Auto-generated method stub
+	}
+
+	public boolean isInvalidCommitted() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void setInvalidCommitted(boolean isCommitted) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void commit() throws SourceException, InvalidValueException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void discard() throws SourceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public boolean isModified() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void addValidator(Validator validator) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void removeValidator(Validator validator) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Collection<Validator> getValidators() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void validate() throws InvalidValueException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public boolean isInvalidAllowed() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void setInvalidAllowed(boolean invalidValueAllowed)
+			throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Date getValue() {
+		if (property != null)
+			return property.getValue();
+		return value;
+	}
+
+	public void setValue(Object newValue)
+			throws com.vaadin.data.Property.ReadOnlyException {
+
+		if (property != null)
+			property.setValue(newValue);
+		else
+			value = (Date) newValue;
+		fireValueChange();
+	}
+
+	public void addListener(
+			com.vaadin.data.Property.ValueChangeListener listener) {
+		valueChangeListeners.add(listener);
+
+	}
+
+	public void removeListener(
+			com.vaadin.data.Property.ValueChangeListener listener) {
+		valueChangeListeners.remove(listener);
+
+	}
+
+	public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setPropertyDataSource(
+			@SuppressWarnings("rawtypes") Property newDataSource) {
+		property = newDataSource;
+	}
+
+	public Property<Date> getPropertyDataSource() {
+		return property;
+	}
+
+	public int getTabIndex() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public void setTabIndex(int tabIndex) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public boolean isRequired() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void setRequired(boolean required) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void setRequiredError(String requiredMessage) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public String getRequiredError() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Class<? extends Date> getType() {
+		return Date.class;
+	}
 }

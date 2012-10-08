@@ -1,41 +1,42 @@
 package com.example.derp;
 
-import com.vaadin.Application;
-import com.vaadin.terminal.ThemeResource;
-import com.vaadin.ui.Alignment;
+import java.util.Date;
+
+import org.vaadin.thomas.timefield.TimeField;
+
+import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.UI;
 
-public class DerpApplication extends Application {
+public class DerpApplication extends UI {
+
+	private static final long serialVersionUID = 547417272819355892L;
+
 	@Override
-	public void init() {
-		Window mainWindow = new Window("");
+	protected void init(VaadinRequest request) {
 
 		HorizontalLayout content = new HorizontalLayout();
-		content.setSizeFull();
-		HorizontalLayout hl = new HorizontalLayout();
-		hl.setWidth("100%");
+		content.setSpacing(true);
 
-		HorizontalLayout child = new HorizontalLayout();
-		child.setSpacing(true);
+		TimeField f = new TimeField();
+		f.setWidth("200px");
+		content.addComponent(f);
 
-		for (int i = 0; i < 3; i++) {
-			Button button = new NativeButton();
-			button.setIcon(new ThemeResource("../runo/favicon.ico"));
-			button.setWidth("50px");
-			button.setHeight("50px");
-			child.addComponent(button);
-		}
+		TimeField f2 = new TimeField();
+		f2.setWidth("200px");
+		content.addComponent(f2);
 
-		hl.addComponent(child);
-		hl.setComponentAlignment(child, Alignment.TOP_CENTER);
+		f2.setPropertyDataSource(f);
+		f.setValue(new Date());
 
-		content.addComponent(hl);
+		Button b = new Button();
+		content.addComponent(b);
+		b = new Button();
+		content.addComponent(b);
+		b = new Button();
+		content.addComponent(b);
 
-		mainWindow.addComponent(content);
-
-		setMainWindow(mainWindow);
+		setContent(content);
 	}
 }
