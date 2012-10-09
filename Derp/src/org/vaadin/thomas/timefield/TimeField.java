@@ -1,19 +1,14 @@
 package org.vaadin.thomas.timefield;
 
 import java.text.DateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 import com.vaadin.data.Property;
-import com.vaadin.data.Validator;
-import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.shared.ui.datefield.Resolution;
-import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
 import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.NativeSelect;
 
@@ -24,7 +19,7 @@ import com.vaadin.ui.NativeSelect;
  * 
  * @author Thomas Mattsson / Vaadin OY
  */
-public class TimeField extends CustomComponent implements Field<Date> {
+public class TimeField extends CustomField<Date> {
 
 	private static final long serialVersionUID = -676425827861766118L;
 
@@ -45,50 +40,41 @@ public class TimeField extends CustomComponent implements Field<Date> {
 
 	private HorizontalLayout root;
 
-	/* FIELD features */
-	private final Set<ValueChangeListener> valueChangeListeners = new HashSet<Property.ValueChangeListener>();
-	private Date value;
-	private Property<Date> property;
-
 	public TimeField(String caption) {
 		this();
 		setCaption(caption);
 	}
 
-	@Override
-	public void focus() {
-		super.focus();
-	}
-
 	public TimeField() {
+
+		hourSelect = getSelect();
+		minuteSelect = getSelect();
+		secondSelect = getSelect();
+		ampmSelect = getSelect();
 
 		root = new HorizontalLayout();
 		root.setHeight(null);
 		root.setWidth(null);
-		setCompositionRoot(root);
 
-		hourSelect = getSelect();
 		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
 		root.addComponent(hourSelect);
 
-		minuteSelect = getSelect();
 		fill(minuteSelect, 59, true);
 		root.addComponent(minuteSelect);
 
-		secondSelect = getSelect();
 		fill(secondSelect, 59, true);
 		root.addComponent(secondSelect);
 
-		ampmSelect = getSelect();
 		ampmSelect.addItem(VALUE_AM);
 		ampmSelect.addItem(VALUE_PM);
 		root.addComponent(ampmSelect);
 
 		// when setValue() is called, update selects
-		addListener(new Property.ValueChangeListener() {
+		addValueChangeListener(new Property.ValueChangeListener() {
 
 			private static final long serialVersionUID = 3383351188340627219L;
 
+			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (maskInternalValueChange) {
 					return;
@@ -205,6 +191,7 @@ public class TimeField extends CustomComponent implements Field<Date> {
 
 			private static final long serialVersionUID = 3383351188340627219L;
 
+			@Override
 			public void valueChange(
 					com.vaadin.data.Property.ValueChangeEvent event) {
 				if (maskInternalValueChange) {
@@ -212,27 +199,12 @@ public class TimeField extends CustomComponent implements Field<Date> {
 				}
 				maskInternalValueChange = true;
 				updateValue();
-				TimeField.this.fireValueChange();
+				TimeField.this.fireValueChange(true);
 				maskInternalValueChange = false;
 
 			}
 		});
 		return select;
-	}
-
-	protected void fireValueChange() {
-		for (ValueChangeListener l : valueChangeListeners) {
-			l.valueChange(new ValueChangeEvent(this) {
-
-				private static final long serialVersionUID = -4921170300352047053L;
-
-				@Override
-				public Property<Date> getProperty() {
-					return TimeField.this;
-				}
-			});
-		}
-
 	}
 
 	@SuppressWarnings("deprecation")
@@ -392,165 +364,14 @@ public class TimeField extends CustomComponent implements Field<Date> {
 		return use24HourClock;
 	}
 
-	public void setBuffered(boolean buffered) {
-
-	}
-
-	public boolean isBuffered() {
-		return false;
-	}
-
-	public void removeAllValidators() {
-		Collection<Validator> validators = getValidators();
-		for (Validator v : validators) {
-			removeValidator(v);
-		}
-
-	}
-
-	public void addValueChangeListener(ValueChangeListener listener) {
-		// TODO Auto-generated method stub
-	}
-
-	public void removeValueChangeListener(ValueChangeListener listener) {
-		// TODO Auto-generated method stub
-	}
-
-	public boolean isInvalidCommitted() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void setInvalidCommitted(boolean isCommitted) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void commit() throws SourceException, InvalidValueException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void discard() throws SourceException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public boolean isModified() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void addValidator(Validator validator) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void removeValidator(Validator validator) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public Collection<Validator> getValidators() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void validate() throws InvalidValueException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public boolean isInvalidAllowed() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void setInvalidAllowed(boolean invalidValueAllowed)
-			throws UnsupportedOperationException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public Date getValue() {
-		if (property != null)
-			return property.getValue();
-		return value;
-	}
-
-	public void setValue(Object newValue)
-			throws com.vaadin.data.Property.ReadOnlyException {
-
-		if (property != null)
-			property.setValue(newValue);
-		else
-			value = (Date) newValue;
-		fireValueChange();
-	}
-
-	public void addListener(
-			com.vaadin.data.Property.ValueChangeListener listener) {
-		valueChangeListeners.add(listener);
-
-	}
-
-	public void removeListener(
-			com.vaadin.data.Property.ValueChangeListener listener) {
-		valueChangeListeners.remove(listener);
-
-	}
-
-	public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@SuppressWarnings("unchecked")
-	public void setPropertyDataSource(
-			@SuppressWarnings("rawtypes") Property newDataSource) {
-		property = newDataSource;
-	}
-
-	public Property<Date> getPropertyDataSource() {
-		return property;
-	}
-
-	public int getTabIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public void setTabIndex(int tabIndex) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public boolean isRequired() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void setRequired(boolean required) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void setRequiredError(String requiredMessage) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public String getRequiredError() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	@Override
 	public Class<? extends Date> getType() {
 		return Date.class;
+	}
+
+	@Override
+	protected Component initContent() {
+
+		return root;
 	}
 }

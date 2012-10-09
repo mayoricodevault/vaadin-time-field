@@ -1,9 +1,0 @@
-@CHARSET "ISO-8859-1";
-@IMPORT url("../reindeer/styles.css");
-
-.v-tabsheet-tabs-minimal .v-tabsheet-tabitem .v-captiontext {
-	color: red;
-}
-.v-tabsheet-tabs-minimal .v-tabsheet-tabitem-selected .v-captiontext {
-	color: green;
-}
