@@ -329,6 +329,9 @@ public class TimeField extends CustomField<Date> {
 			}
 		}
 		this.resolution = resolution;
+		maskInternalValueChange = true;
+		updateFields();
+		maskInternalValueChange = false;
 	}
 
 	/**

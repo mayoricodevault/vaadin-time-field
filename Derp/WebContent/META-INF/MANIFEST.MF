@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Implementation-Title: TimeField
-Implementation-Version: 0.1
+Implementation-Version: 0.1-v7
 Vaadin-Package-Version: 1
 Class-Path: 
 
