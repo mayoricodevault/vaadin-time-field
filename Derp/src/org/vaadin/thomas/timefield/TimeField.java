@@ -15,7 +15,7 @@ import com.vaadin.ui.NativeSelect;
 /**
  * A field for selecting time values.
  * <p>
- * Uses {@link Date} as internal data type. 
+ * Uses {@link Date} as internal data type.
  * 
  * @author Thomas Mattsson / Vaadin OY
  */
@@ -106,23 +106,24 @@ public class TimeField extends CustomField {
 		Date d = (Date) getValue();
 		return d.getHours();
 	}
-	
+
 	/**
 	 * Set hour in 24-hour format (0-23)
+	 * 
 	 * @param hours
 	 */
-	public void setHours(int hours){
-		
-		if(!use24HourClock){
-			
-			if(hours > 12){
+	public void setHours(int hours) {
+
+		if (!use24HourClock) {
+
+			if (hours > 12) {
 				ampmSelect.select(VALUE_PM);
 				hours %= 12;
 			} else {
 				ampmSelect.select(VALUE_AM);
 			}
-			
-			if(hours == 0) {
+
+			if (hours == 0) {
 				hours = 12;
 			}
 		}
@@ -134,8 +135,8 @@ public class TimeField extends CustomField {
 		Date d = (Date) getValue();
 		return d.getMinutes();
 	}
-	
-	public void setMinutes(int minutes){
+
+	public void setMinutes(int minutes) {
 		minuteSelect.setValue(minutes);
 	}
 
@@ -144,8 +145,8 @@ public class TimeField extends CustomField {
 		Date d = (Date) getValue();
 		return d.getSeconds();
 	}
-	
-	public void setSeconds(int seconds){
+
+	public void setSeconds(int seconds) {
 		secondSelect.setValue(seconds);
 	}
 
@@ -312,16 +313,19 @@ public class TimeField extends CustomField {
 	 * @param resolution
 	 */
 	public void setResolution(int resolution) {
-		
-		if(this.resolution < resolution){
-			if(resolution>DateField.RESOLUTION_SEC){
+
+		if (this.resolution < resolution) {
+			if (resolution > DateField.RESOLUTION_SEC) {
 				secondSelect.setValue(0);
 			}
-			if(resolution>DateField.RESOLUTION_MIN){
+			if (resolution > DateField.RESOLUTION_MIN) {
 				minuteSelect.setValue(0);
 			}
 		}
 		this.resolution = resolution;
+		maskInternalValueChange = true;
+		updateFields();
+		maskInternalValueChange = false;
 	}
 
 	/**
