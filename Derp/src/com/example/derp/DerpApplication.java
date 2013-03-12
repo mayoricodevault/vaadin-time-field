@@ -6,6 +6,9 @@ import org.vaadin.thomas.timefield.TimeField;
 
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.datefield.Resolution;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -20,7 +23,7 @@ public class DerpApplication extends UI {
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
 
-		TimeField f = new TimeField();
+		final TimeField f = new TimeField();
 		f.setLocale(Locale.FRANCE);
 		f.setWidth("200px");
 		content.addComponent(f);
@@ -38,5 +41,19 @@ public class DerpApplication extends UI {
 		DateField df = new DateField();
 		df.setTabIndex(34);
 		content.addComponent(df);
+
+		// f.setValue(null);
+
+		Button b = new Button("adad");
+		b.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				// TODO Auto-generated method stub
+				f.setValue(null);
+			}
+		});
+
+		content.addComponent(b);
 	}
 }
