@@ -85,17 +85,7 @@ public class TimeField extends CustomField {
 		addStyleName("timefield");
 		setSizeUndefined();
 
-		initValue();
-	}
-
-	@SuppressWarnings("deprecation")
-	private void initValue() {
-
-		Date newDate = new Date(0);
-		newDate.setSeconds(0);
-		newDate.setMinutes(0);
-		newDate.setHours(0);
-		setValue(newDate);
+		updateFields();
 	}
 
 	/**
@@ -203,8 +193,28 @@ public class TimeField extends CustomField {
 		return select;
 	}
 
+	/**
+	 * This method gets called when any of the internal Select components are
+	 * called.
+	 */
 	@SuppressWarnings("deprecation")
 	private void updateValue() {
+
+		// if the value of any select is null at this point, we need to init it
+		// to zero to prevent exceptions.
+
+		if (secondSelect.getValue() == null) {
+			secondSelect.setValue(0);
+		}
+		if (minuteSelect.getValue() == null) {
+			minuteSelect.setValue(0);
+		}
+		if (hourSelect.getValue() == null) {
+			hourSelect.setValue(0);
+		}
+		if (ampmSelect.getValue() == null) {
+			ampmSelect.setValue(VALUE_AM);
+		}
 
 		Date newDate = new Date(0);
 		newDate.setSeconds(0);
@@ -239,15 +249,26 @@ public class TimeField extends CustomField {
 		setValue(newDate);
 	}
 
+	/**
+	 * This method gets called when we update the actual value (Date) of this
+	 * TimeField.
+	 */
 	@SuppressWarnings("deprecation")
 	private void updateFields() {
 
-		Date val = (Date) getValue();
+		minuteSelect.setVisible(resolution.ordinal() < Resolution.HOUR
+				.ordinal());
+		secondSelect.setVisible(resolution.ordinal() < Resolution.MINUTE
+				.ordinal());
+		ampmSelect.setVisible(!use24HourClock);
+
+		Date val = getValue();
 		if (val == null) {
 			hourSelect.setValue(null);
 			minuteSelect.setValue(null);
 			secondSelect.setValue(null);
 			ampmSelect.setValue(null);
+			return;
 		}
 
 		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
@@ -268,8 +289,6 @@ public class TimeField extends CustomField {
 
 		secondSelect.setVisible(resolution < DateField.RESOLUTION_MIN);
 		secondSelect.setValue(val.getSeconds());
-
-		ampmSelect.setVisible(!use24HourClock);
 		if (val.getHours() < 12) {
 			ampmSelect.setValue(VALUE_AM);
 		} else {

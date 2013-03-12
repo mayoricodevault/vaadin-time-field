@@ -1,14 +1,22 @@
 package com.example.derp;
 
-import com.vaadin.Application;
-import com.vaadin.terminal.ThemeResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.NativeButton;
-import com.vaadin.ui.Window;
+import java.util.Locale;
 
-public class DerpApplication extends Application {
+import org.vaadin.thomas.timefield.TimeField;
+
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.datefield.Resolution;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.DateField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+
+public class DerpApplication extends UI {
+
+	private static final long serialVersionUID = 547417272819355892L;
+
 	@Override
 	public void init() {
 		Window mainWindow = new Window("");
@@ -21,13 +29,10 @@ public class DerpApplication extends Application {
 		HorizontalLayout child = new HorizontalLayout();
 		child.setSpacing(true);
 
-		for (int i = 0; i < 3; i++) {
-			Button button = new NativeButton();
-			button.setIcon(new ThemeResource("../runo/favicon.ico"));
-			button.setWidth("50px");
-			button.setHeight("50px");
-			child.addComponent(button);
-		}
+		final TimeField f = new TimeField();
+		f.setLocale(Locale.FRANCE);
+		f.setWidth("200px");
+		content.addComponent(f);
 
 		hl.addComponent(child);
 		hl.setComponentAlignment(child, Alignment.TOP_CENTER);
@@ -36,6 +41,22 @@ public class DerpApplication extends Application {
 
 		mainWindow.addComponent(content);
 
-		setMainWindow(mainWindow);
+		DateField df = new DateField();
+		df.setTabIndex(34);
+		content.addComponent(df);
+
+		// f.setValue(null);
+
+		Button b = new Button("adad");
+		b.addClickListener(new ClickListener() {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				// TODO Auto-generated method stub
+				f.setValue(null);
+			}
+		});
+
+		content.addComponent(b);
 	}
 }
