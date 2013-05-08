@@ -383,4 +383,16 @@ public class TimeField extends CustomField {
 		return Date.class;
 	}
 
+	@Override
+	public void setTabIndex(int tabIndex) {
+		hourSelect.setTabIndex(tabIndex);
+		minuteSelect.setTabIndex(tabIndex);
+		secondSelect.setTabIndex(tabIndex);
+		ampmSelect.setTabIndex(tabIndex);
+	}
+
+	@Override
+	public int getTabIndex() {
+		return hourSelect.getTabIndex();
+	}
 }
