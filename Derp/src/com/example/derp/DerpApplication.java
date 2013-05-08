@@ -1,5 +1,6 @@
 package com.example.derp;
 
+import java.util.Date;
 import java.util.Locale;
 
 import org.vaadin.thomas.timefield.TimeField;
@@ -8,6 +9,7 @@ import com.vaadin.Application;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 
 public class DerpApplication extends Application {
@@ -17,6 +19,7 @@ public class DerpApplication extends Application {
 	@Override
 	public void init() {
 		Window mainWindow = new Window("");
+		setMainWindow(mainWindow);
 
 		HorizontalLayout content = new HorizontalLayout();
 		content.setSizeFull();
@@ -29,6 +32,7 @@ public class DerpApplication extends Application {
 		final TimeField f = new TimeField();
 		f.setLocale(Locale.FRANCE);
 		f.setWidth("200px");
+		f.setTabIndex(3);
 		content.addComponent(f);
 
 		hl.addComponent(child);
@@ -42,7 +46,12 @@ public class DerpApplication extends Application {
 		df.setTabIndex(34);
 		content.addComponent(df);
 
-		// f.setValue(null);
+		f.setValue(new Date());
+		f.setValue(null);
+
+		TextField tf = new TextField();
+		tf.setTabIndex(2);
+		mainWindow.addComponent(tf);
 
 	}
 }
