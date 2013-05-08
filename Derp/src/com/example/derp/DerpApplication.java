@@ -6,10 +6,7 @@ import org.vaadin.thomas.timefield.TimeField;
 
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.datefield.Resolution;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.DateField;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
@@ -22,11 +19,23 @@ public class DerpApplication extends UI {
 
 		VerticalLayout content = new VerticalLayout();
 		content.setSpacing(true);
+		int i = 1;
+		TextField tf = new TextField();
+		tf.setTabIndex(i++);
+		content.addComponent(tf);
+		tf = new TextField();
+		tf.setTabIndex(i++);
+		content.addComponent(tf);
 
 		final TimeField f = new TimeField();
 		f.setLocale(Locale.FRANCE);
 		f.setWidth("200px");
+		f.setTabIndex(i++);
 		content.addComponent(f);
+
+		tf = new TextField();
+		tf.setTabIndex(i++);
+		content.addComponent(tf);
 
 		TimeField f2 = new TimeField();
 		f2.setResolution(Resolution.SECOND);
@@ -36,24 +45,14 @@ public class DerpApplication extends UI {
 
 		f2.setPropertyDataSource(f);
 
+		tf = new TextField();
+		tf.setTabIndex(i++);
+		content.addComponent(tf);
+		tf = new TextField();
+		tf.setTabIndex(i++);
+		content.addComponent(tf);
+
 		setContent(content);
 
-		DateField df = new DateField();
-		df.setTabIndex(34);
-		content.addComponent(df);
-
-		// f.setValue(null);
-
-		Button b = new Button("adad");
-		b.addClickListener(new ClickListener() {
-
-			@Override
-			public void buttonClick(ClickEvent event) {
-				// TODO Auto-generated method stub
-				f.setValue(null);
-			}
-		});
-
-		content.addComponent(b);
 	}
 }
