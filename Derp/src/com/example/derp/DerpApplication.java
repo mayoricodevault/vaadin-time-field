@@ -4,16 +4,13 @@ import java.util.Locale;
 
 import org.vaadin.thomas.timefield.TimeField;
 
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.ui.datefield.Resolution;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.Application;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.DateField;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Window;
 
-public class DerpApplication extends UI {
+public class DerpApplication extends Application {
 
 	private static final long serialVersionUID = 547417272819355892L;
 
@@ -47,16 +44,5 @@ public class DerpApplication extends UI {
 
 		// f.setValue(null);
 
-		Button b = new Button("adad");
-		b.addClickListener(new ClickListener() {
-
-			@Override
-			public void buttonClick(ClickEvent event) {
-				// TODO Auto-generated method stub
-				f.setValue(null);
-			}
-		});
-
-		content.addComponent(b);
 	}
 }

@@ -256,13 +256,11 @@ public class TimeField extends CustomField {
 	@SuppressWarnings("deprecation")
 	private void updateFields() {
 
-		minuteSelect.setVisible(resolution.ordinal() < Resolution.HOUR
-				.ordinal());
-		secondSelect.setVisible(resolution.ordinal() < Resolution.MINUTE
-				.ordinal());
+		minuteSelect.setVisible(resolution < DateField.RESOLUTION_HOUR);
+		secondSelect.setVisible(resolution < DateField.RESOLUTION_MIN);
 		ampmSelect.setVisible(!use24HourClock);
 
-		Date val = getValue();
+		Date val = (Date) getValue();
 		if (val == null) {
 			hourSelect.setValue(null);
 			minuteSelect.setValue(null);
