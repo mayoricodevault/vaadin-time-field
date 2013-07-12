@@ -282,7 +282,7 @@ public class TimeField extends CustomField<Date> {
 			int h = val.getHours();
 			if (h == 0) {
 				h = 12;
-			} else {
+			} else if (h != 12) {
 				h %= 12;
 			}
 			hourSelect.setValue(h);
@@ -294,11 +294,6 @@ public class TimeField extends CustomField<Date> {
 			ampmSelect.setValue(VALUE_AM);
 		} else {
 			ampmSelect.setValue(VALUE_PM);
-		}
-
-		// fix 12:xx am
-		if (!use24HourClock && val.getHours() == 0) {
-			hourSelect.setValue(12);
 		}
 	}
 
