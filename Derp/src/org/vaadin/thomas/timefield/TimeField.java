@@ -404,4 +404,13 @@ public class TimeField extends CustomField<Date> {
 	public int getTabIndex() {
 		return hourSelect.getTabIndex();
 	}
+
+	@Override
+	public void setReadOnly(boolean readOnly) {
+		hourSelect.setReadOnly(readOnly);
+		minuteSelect.setReadOnly(readOnly);
+		secondSelect.setReadOnly(readOnly);
+		ampmSelect.setReadOnly(readOnly);
+		super.setReadOnly(readOnly);
+	}
 }

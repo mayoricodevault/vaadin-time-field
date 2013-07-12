@@ -54,5 +54,15 @@ public class DerpApplication extends UI {
 
 		setContent(content);
 
+		f2 = new TimeField();
+		f2.setWidth("200px");
+		f2.setEnabled(false);
+		content.addComponent(f2);
+
+		f2 = new TimeField();
+		f2.setWidth("200px");
+		f2.setReadOnly(true);
+		content.addComponent(f2);
+
 	}
 }
