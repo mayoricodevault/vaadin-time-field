@@ -35,6 +35,7 @@ public class TimeField extends CustomField<Date> {
 	private final NativeSelect ampmSelect;
 
 	private Resolution resolution = Resolution.MINUTE;
+	private int intervalMinutes = 1;
 
 	private boolean maskInternalValueChange = false;
 
@@ -59,7 +60,7 @@ public class TimeField extends CustomField<Date> {
 		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
 		root.addComponent(hourSelect);
 
-		fill(minuteSelect, 59, true);
+		fillMinutes();
 		root.addComponent(minuteSelect);
 
 		fill(secondSelect, 59, true);
@@ -79,9 +80,7 @@ public class TimeField extends CustomField<Date> {
 				if (maskInternalValueChange) {
 					return;
 				}
-				maskInternalValueChange = true;
 				updateFields();
-				maskInternalValueChange = false;
 			}
 		});
 
@@ -154,6 +153,16 @@ public class TimeField extends CustomField<Date> {
 		}
 		for (int i = startVal; i <= max; i++) {
 			s.addItem(i);
+		}
+	}
+
+	private void fillMinutes() {
+
+		minuteSelect.removeAllItems();
+		for (int i = 0; i < 60; i++) {
+			if (i % intervalMinutes == 0) {
+				minuteSelect.addItem(i);
+			}
 		}
 	}
 
@@ -260,6 +269,8 @@ public class TimeField extends CustomField<Date> {
 	@SuppressWarnings("deprecation")
 	private void updateFields() {
 
+		maskInternalValueChange = true;
+
 		minuteSelect.setVisible(resolution.ordinal() < Resolution.HOUR
 				.ordinal());
 		secondSelect.setVisible(resolution.ordinal() < Resolution.MINUTE
@@ -267,15 +278,21 @@ public class TimeField extends CustomField<Date> {
 		ampmSelect.setVisible(!use24HourClock);
 
 		Date val = getValue();
+
+		// make sure to update alternatives, wont spoil value above
+		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
+		fillMinutes();
+
 		if (val == null) {
+			// clear values
 			hourSelect.setValue(null);
 			minuteSelect.setValue(null);
 			secondSelect.setValue(null);
 			ampmSelect.setValue(null);
+
 			return;
 		}
 
-		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
 		if (use24HourClock) {
 			hourSelect.setValue(val.getHours());
 		} else {
@@ -288,13 +305,17 @@ public class TimeField extends CustomField<Date> {
 			hourSelect.setValue(h);
 		}
 
+		// TODO change minute value?
 		minuteSelect.setValue(val.getMinutes());
+
 		secondSelect.setValue(val.getSeconds());
 		if (val.getHours() < 12) {
 			ampmSelect.setValue(VALUE_AM);
 		} else {
 			ampmSelect.setValue(VALUE_PM);
 		}
+
+		maskInternalValueChange = false;
 	}
 
 	/**
@@ -315,9 +336,7 @@ public class TimeField extends CustomField<Date> {
 		} else {
 			use24HourClock = true;
 		}
-		maskInternalValueChange = true;
 		updateFields();
-		maskInternalValueChange = false;
 	}
 
 	/**
@@ -338,9 +357,7 @@ public class TimeField extends CustomField<Date> {
 			}
 		}
 		this.resolution = resolution;
-		maskInternalValueChange = true;
 		updateFields();
-		maskInternalValueChange = false;
 	}
 
 	/**
@@ -367,9 +384,7 @@ public class TimeField extends CustomField<Date> {
 
 	public void set24HourClock(boolean use24hourclock) {
 		use24HourClock = use24hourclock;
-		maskInternalValueChange = true;
 		updateFields();
-		maskInternalValueChange = false;
 	}
 
 	public boolean is24HourClock() {
@@ -407,5 +422,23 @@ public class TimeField extends CustomField<Date> {
 		secondSelect.setReadOnly(readOnly);
 		ampmSelect.setReadOnly(readOnly);
 		super.setReadOnly(readOnly);
+	}
+
+	public int getMinuteInterval() {
+		return intervalMinutes;
+	}
+
+	/**
+	 * Set the interval to be used in minute select. Default is 1 minute
+	 * intervals.
+	 * 
+	 * @param interval
+	 */
+	public void setMinuteInterval(int interval) {
+		if (interval < 0) {
+			interval = 0;
+		}
+		intervalMinutes = interval;
+		updateFields();
 	}
 }
