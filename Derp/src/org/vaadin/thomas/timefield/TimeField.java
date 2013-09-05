@@ -23,19 +23,17 @@ public class TimeField extends CustomField<Date> {
 
 	private static final long serialVersionUID = -676425827861766118L;
 
-	private static final String VALUE_AM = "am";
-	private static final String VALUE_PM = "pm";
-
 	private boolean use24HourClock = true;
 	private Locale givenLocale = null;
 
 	private final NativeSelect hourSelect;
 	private final NativeSelect minuteSelect;
 	private final NativeSelect secondSelect;
-	private final NativeSelect ampmSelect;
 
 	private Resolution resolution = Resolution.MINUTE;
 	private int intervalMinutes = 1;
+	private int minHours = 0;
+	private int maxHours = 23;
 
 	private boolean maskInternalValueChange = false;
 
@@ -51,24 +49,19 @@ public class TimeField extends CustomField<Date> {
 		hourSelect = getSelect();
 		minuteSelect = getSelect();
 		secondSelect = getSelect();
-		ampmSelect = getSelect();
 
 		root = new HorizontalLayout();
 		root.setHeight(null);
 		root.setWidth(null);
 
-		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
+		fillHours();
 		root.addComponent(hourSelect);
 
 		fillMinutes();
 		root.addComponent(minuteSelect);
 
-		fill(secondSelect, 59, true);
+		fillSeconds();
 		root.addComponent(secondSelect);
-
-		ampmSelect.addItem(VALUE_AM);
-		ampmSelect.addItem(VALUE_PM);
-		root.addComponent(ampmSelect);
 
 		// when setValue() is called, update selects
 		addValueChangeListener(new Property.ValueChangeListener() {
@@ -100,25 +93,21 @@ public class TimeField extends CustomField<Date> {
 	}
 
 	/**
-	 * Set hour in 24-hour format (0-23)
+	 * Set hour in 24-hour format (0-23).
 	 * 
 	 * @param hours
+	 * @throws IllegalArgumentException
+	 *             If the hour parameter is outside the bounds marked by
+	 *             {@link #getHourMin()} and {@link #getHourMax()}
 	 */
-	public void setHours(int hours) {
+	public void setHours(int hours) throws IllegalArgumentException {
 
-		if (!use24HourClock) {
-
-			if (hours > 12) {
-				ampmSelect.select(VALUE_PM);
-				hours %= 12;
-			} else {
-				ampmSelect.select(VALUE_AM);
-			}
-
-			if (hours == 0) {
-				hours = 12;
-			}
+		if (hours < minHours || hours > maxHours) {
+			throw new IllegalArgumentException("Value '" + hours
+					+ "' is outside bounds '" + minHours + "' - '" + maxHours
+					+ "'");
 		}
+
 		hourSelect.setValue(hours);
 	}
 
@@ -128,7 +117,19 @@ public class TimeField extends CustomField<Date> {
 		return d.getMinutes();
 	}
 
+	/**
+	 * @param minutes
+	 * 
+	 * @throws IllegalArgumentException
+	 *             If the minute parameter is not compatible with
+	 *             {@link #getMinuteInterval()}
+	 */
 	public void setMinutes(int minutes) {
+		if (minutes % intervalMinutes != 0) {
+			throw new IllegalArgumentException("Value '" + minutes
+					+ "' is not compatible with interval '" + intervalMinutes
+					+ "'");
+		}
 		minuteSelect.setValue(minutes);
 	}
 
@@ -142,17 +143,23 @@ public class TimeField extends CustomField<Date> {
 		secondSelect.setValue(seconds);
 	}
 
-	private void fill(NativeSelect s, int max, boolean includeZero) {
+	private void fillHours() {
 
-		s.removeAllItems();
-		int startVal;
-		if (includeZero) {
-			startVal = 0;
-		} else {
-			startVal = 1;
-		}
-		for (int i = startVal; i <= max; i++) {
-			s.addItem(i);
+		hourSelect.removeAllItems();
+
+		for (int i = minHours; i <= maxHours; i++) {
+			hourSelect.addItem(i);
+			if (!use24HourClock) {
+				Integer val = i == 0 || i == 12 ? 12 : i % 12;
+
+				String suffix;
+				if (i < 12) {
+					suffix = " am";
+				} else {
+					suffix = " pm";
+				}
+				hourSelect.setItemCaption(i, val + suffix);
+			}
 		}
 	}
 
@@ -162,28 +169,22 @@ public class TimeField extends CustomField<Date> {
 		for (int i = 0; i < 60; i++) {
 			if (i % intervalMinutes == 0) {
 				minuteSelect.addItem(i);
+				minuteSelect.setItemCaption(i, i < 10 ? "0" + i : i + "");
 			}
 		}
 	}
 
+	private void fillSeconds() {
+
+		secondSelect.removeAllItems();
+		for (int i = 0; i < 60; i++) {
+			secondSelect.addItem(i);
+			secondSelect.setItemCaption(i, i < 10 ? "0" + i : i + "");
+		}
+	}
+
 	private NativeSelect getSelect() {
-		NativeSelect select = new NativeSelect() {
-			private static final long serialVersionUID = 7956455947702461208L;
-
-			@Override
-			public String getItemCaption(Object itemId) {
-
-				if (itemId instanceof Integer) {
-					int val = (Integer) itemId;
-
-					if (val < 10) {
-						return "0" + val;
-					}
-					return val + "";
-				}
-				return super.getItemCaption(itemId);
-			}
-		};
+		NativeSelect select = new NativeSelect();
 		select.setImmediate(true);
 		select.setNullSelectionAllowed(false);
 		select.addValueChangeListener(new Property.ValueChangeListener() {
@@ -225,9 +226,6 @@ public class TimeField extends CustomField<Date> {
 		if (hourSelect.getValue() == null) {
 			hourSelect.setValue(0);
 		}
-		if (ampmSelect.getValue() == null) {
-			ampmSelect.setValue(VALUE_AM);
-		}
 
 		Date newDate = new Date(0);
 		newDate.setSeconds(0);
@@ -238,17 +236,7 @@ public class TimeField extends CustomField<Date> {
 		if (resolution.ordinal() <= Resolution.HOUR.ordinal()) {
 			val = (Integer) hourSelect.getValue();
 
-			if (use24HourClock) {
-				newDate.setHours(val);
-			} else {
-				if (VALUE_PM.equals(ampmSelect.getValue()) && val != 12) {
-					val += 12;
-					val %= 24;
-				} else if (VALUE_AM.equals(ampmSelect.getValue()) && val == 12) {
-					val = 0;
-				}
-				newDate.setHours(val);
-			}
+			newDate.setHours(val);
 		}
 		if (resolution.ordinal() < Resolution.HOUR.ordinal()) {
 			val = (Integer) minuteSelect.getValue();
@@ -275,12 +263,11 @@ public class TimeField extends CustomField<Date> {
 				.ordinal());
 		secondSelect.setVisible(resolution.ordinal() < Resolution.MINUTE
 				.ordinal());
-		ampmSelect.setVisible(!use24HourClock);
 
 		Date val = getValue();
 
 		// make sure to update alternatives, wont spoil value above
-		fill(hourSelect, use24HourClock ? 23 : 12, use24HourClock);
+		fillHours();
 		fillMinutes();
 
 		if (val == null) {
@@ -288,32 +275,60 @@ public class TimeField extends CustomField<Date> {
 			hourSelect.setValue(null);
 			minuteSelect.setValue(null);
 			secondSelect.setValue(null);
-			ampmSelect.setValue(null);
 
+			maskInternalValueChange = false;
 			return;
 		}
 
-		if (use24HourClock) {
-			hourSelect.setValue(val.getHours());
-		} else {
-			int h = val.getHours();
-			if (h == 0) {
-				h = 12;
-			} else if (h != 12) {
-				h %= 12;
+		// check hour bounds
+		if (val.getHours() < minHours) {
+			// guess
+			int compatibleVal = val.getHours();
+			while (compatibleVal < 24) {
+				if (compatibleVal >= minHours) {
+					break;
+				}
+				compatibleVal++;
 			}
-			hourSelect.setValue(h);
+			if (compatibleVal >= minHours) {
+				val.setHours(compatibleVal);
+			} else {
+				// no acceptable hour found. Most likely user is changing
+				// bounds, and will fix with another call to the other bound.
+			}
+		} else if (val.getHours() > maxHours) {
+			// guess
+			int compatibleVal = val.getHours();
+			while (compatibleVal > 0) {
+				if (compatibleVal <= maxHours) {
+					break;
+				}
+				compatibleVal--;
+			}
+			if (compatibleVal <= maxHours) {
+				val.setHours(compatibleVal);
+			} else {
+				// no acceptable hour found. Most likely user is changing
+				// bounds, and will fix with another call to the other bound.
+			}
 		}
+		hourSelect.setValue(val.getHours());
 
-		// TODO change minute value?
+		// check minute interval
+		if (val.getMinutes() % intervalMinutes != 0) {
+			// guess
+			int compatibleVal = val.getMinutes();
+			while (compatibleVal > 0) {
+				if (compatibleVal % intervalMinutes == 0) {
+					break;
+				}
+				compatibleVal--;
+			}
+			val.setMinutes(compatibleVal);
+		}
 		minuteSelect.setValue(val.getMinutes());
 
 		secondSelect.setValue(val.getSeconds());
-		if (val.getHours() < 12) {
-			ampmSelect.setValue(VALUE_AM);
-		} else {
-			ampmSelect.setValue(VALUE_PM);
-		}
 
 		maskInternalValueChange = false;
 	}
@@ -407,7 +422,6 @@ public class TimeField extends CustomField<Date> {
 		hourSelect.setTabIndex(tabIndex);
 		minuteSelect.setTabIndex(tabIndex);
 		secondSelect.setTabIndex(tabIndex);
-		ampmSelect.setTabIndex(tabIndex);
 	}
 
 	@Override
@@ -420,7 +434,6 @@ public class TimeField extends CustomField<Date> {
 		hourSelect.setReadOnly(readOnly);
 		minuteSelect.setReadOnly(readOnly);
 		secondSelect.setReadOnly(readOnly);
-		ampmSelect.setReadOnly(readOnly);
 		super.setReadOnly(readOnly);
 	}
 
@@ -439,6 +452,57 @@ public class TimeField extends CustomField<Date> {
 			interval = 0;
 		}
 		intervalMinutes = interval;
+		updateFields();
+	}
+
+	public int getHourMin() {
+		return minHours;
+	}
+
+	/**
+	 * Set the minimum allowed value for the hour, in 24h format. Defaults to 0.
+	 * <p>
+	 * Changing this setting so that the field has a value outside the new
+	 * bounds will lead to the field resetting its value to the first bigger
+	 * value that is valid.
+	 * 
+	 */
+	public void setHourMin(int minHours) {
+
+		if (minHours < 0) {
+			minHours = 0;
+		}
+		if (minHours > 23) {
+			minHours = 23;
+		}
+
+		this.minHours = minHours;
+		updateFields();
+	}
+
+	public int getHourMax() {
+		return maxHours;
+	}
+
+	/**
+	 * Set the maximum allowed value for the hour, in 24h format. Defaults to
+	 * 23.
+	 * <p>
+	 * Changing this setting so that the field has a value outside the new
+	 * bounds will lead to the field resetting its value to the first smaller
+	 * value that is valid.
+	 * 
+	 */
+	public void setHourMax(int maxHours) {
+
+		if (maxHours < 0) {
+			maxHours = 0;
+		}
+		if (maxHours > 23) {
+			maxHours = 23;
+		}
+
+		this.maxHours = maxHours;
 		updateFields();
 	}
 }
